@@ -14,11 +14,6 @@ export class AuthService {
       throw new ConflictException("Email already exists");
     }
     const hashedPassword = await hash(password, 12);
-    const user = await this.prisma.user.create({
-      data: { fullname, email, password: hashedPassword },
-    });
-    const token = this.jwt.sign({ id: user.id });
-    return { message: "User successfully registered", token, data: user }
   }
 
   async login({ email, password }: LoginDto) {
