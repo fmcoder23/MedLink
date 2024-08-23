@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum RecordType {
+  DIAGNOSIS
+  PRESCRIPTION
+  LAB_REPORT
+  OTHER
+}
+
+model User {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  fullname String
+  email    String @unique
+  password String
+
+  phoneNumber String @unique
+  role        UserRole @default(USER)
+  photo       String?
+
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  prescriptions  Prescription[]
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  reviews        Review[]
+  symptomChecker SymptomChecker[]
+
+  @@id([id])
+  @@index([role])
+  @@index([isActive])
+}
+
+model Hospital {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  name        String
+  description String?
+
+  address  String
+  location Json
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  doctors Doctor[]
+
+  @@id([id])
+  @@unique([name])
+  @@index([location])
+}
+
+model Doctor {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  fullname String
+  email    String
+
+  specialization String[]
+  description    String?
+  phoneNumber    String
+  photo          String
+
+  hospitalId String   @db.Uuid
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  prescriptions  Prescription[]
+  appointments   Appointment[]
+  reviews        Review[]
+  symptomChecker SymptomChecker[]
+
+  @@id([id])
+  @@unique([email, phoneNumber])
+  @@index([hospitalId])
+}
+
+model Appointment {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  patientId String @db.Uuid
+  doctorId  String @db.Uuid
+
+  scheduledAt DateTime
+  status      AppointmentStatus @default(PENDING)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  patient User   @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model MedicalRecord {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  patientId String @db.Uuid
+
+  recordType RecordType
+  details    String
+  files      String[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  patient User @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([patientId])
+  @@index([recordType])
+}
+
+model Prescription {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  doctorId  String @db.Uuid
+  patientId String @db.Uuid
+
+  medication   String
+  dosage       String
+  instructions String
+
+  expirationDate DateTime?
+  fulfilled      Boolean   @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  patient User   @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([fulfilled])
+  @@index([expirationDate])
+}
+
+model Review {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  doctorId  String @db.Uuid
+  patientId String @db.Uuid
+
+  isAnonymous Boolean @default(false)
+  rating      Int
+  comment     String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  patient User   @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([rating])
+}
+
+model SymptomChecker {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  userId String @db.Uuid
+  recommendedDoctorId String? @db.Uuid
+
+  symptoms  String[]
+  diagnosis String?
+
+  createdAt DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  doctor Doctor? @relation(fields: [recommendedDoctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([userId])
+  @@index([recommendedDoctorId])
+}
+
