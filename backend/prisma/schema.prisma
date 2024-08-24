@@ -30,13 +30,12 @@ enum RecordType {
 model User {
   id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  fullname String
-  email    String @unique
-  password String
-
+  fullname    String
   phoneNumber String @unique
-  role        UserRole @default(USER)
-  photo       String?
+  password    String
+
+  role  UserRole @default(USER)
+  photo String?
 
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
@@ -77,12 +76,12 @@ model Hospital {
 model Doctor {
   id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  fullname String
-  email    String
+  fullname    String
+  phoneNumber String @unique
+  password    String
 
   specialization String[]
   description    String?
-  phoneNumber    String
   photo          String
 
   hospitalId String   @db.Uuid
@@ -98,7 +97,6 @@ model Doctor {
   symptomChecker SymptomChecker[]
 
   @@id([id])
-  @@unique([email, phoneNumber])
   @@index([hospitalId])
 }
 
@@ -198,7 +196,7 @@ model Review {
 model SymptomChecker {
   id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  userId String @db.Uuid
+  userId              String  @db.Uuid
   recommendedDoctorId String? @db.Uuid
 
   symptoms  String[]
@@ -213,4 +211,3 @@ model SymptomChecker {
   @@index([userId])
   @@index([recommendedDoctorId])
 }
-
