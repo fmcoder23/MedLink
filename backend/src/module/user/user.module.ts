@@ -1,9 +1,22 @@
 import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { config } from 'src/config';
+import { PrismaModule } from '../prisma/prisma.module';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @Module({
+  imports: [
+    JwtModule.register({
+      secret: config.jwt.secret,
+      signOptions: {
+        expiresIn: config.jwt.expiration,
+      }
+    }),
+    PrismaModule
+  ],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService,RolesGuard],
 })
 export class UserModule {}

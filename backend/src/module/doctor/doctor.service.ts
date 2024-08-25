@@ -77,7 +77,7 @@ export class DoctorService {
 
   async updateMe(doctorId: string, updateDoctorDto: UpdateDoctorDto) {
     const { password, ...rest } = updateDoctorDto;
-    let hashedPassword;
+    let hashedPassword: string;
     if (password) {
       hashedPassword = await hash(password, 12);
     }
