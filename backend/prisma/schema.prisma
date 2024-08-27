@@ -20,6 +20,11 @@ enum AppointmentStatus {
   COMPLETED
 }
 
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
 enum RecordType {
   DIAGNOSIS
   PRESCRIPTION
@@ -37,7 +42,6 @@ model User {
   role  UserRole @default(USER)
   photo String?
 
-  isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -50,7 +54,6 @@ model User {
 
   @@id([id])
   @@index([role])
-  @@index([isActive])
 }
 
 model Doctor {
@@ -112,6 +115,9 @@ model MedicalRecord {
   recordType RecordType
   details    String
   files      String[]
+
+  price Int
+  paymentStatus PaymentStatus
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

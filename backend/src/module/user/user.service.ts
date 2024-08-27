@@ -17,18 +17,9 @@ export class UserService {
   }
 
   async updateMe(id: string, updateUserDto: UpdateUserDto) {
-    const { password, ...rest } = updateUserDto;
-    const data: Partial<UpdateUserDto & { password?: string }> = rest;
-
-    if (password) {
-      data.password = await hash(password, 12);
-    }
-
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data,
-    });
-
+    // Exclude role from the update
+    const { role, ...rest } = updateUserDto;
+    const updatedUser = await this.updateUser(id, rest);
     return formatResponse("User's details updated successfully", updatedUser);
   }
 
@@ -48,25 +39,27 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    await this.findUserById(id);
-
-    const data: Partial<UpdateUserDto & { password?: string }> = updateUserDto;
-    if (updateUserDto.password) {
-      data.password = await hash(updateUserDto.password, 12);
-    }
-
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data,
-    });
-
+    const updatedUser = await this.updateUser(id, updateUserDto);
     return formatResponse('User updated successfully', updatedUser);
   }
 
   async remove(id: string) {
-    await this.findUserById(id);
-
+    const user = await this.findUserById(id);
     await this.prisma.user.delete({ where: { id } });
     return formatResponse('User deleted successfully', null);
+  }
+
+  private async updateUser(id: string, updateUserDto: Partial<UpdateUserDto>) {
+    const { password, ...rest } = updateUserDto;
+    const data: Partial<UpdateUserDto & { password?: string }> = rest;
+
+    if (password) {
+      data.password = await hash(password, 12);
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
   }
 }
