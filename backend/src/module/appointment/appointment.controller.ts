@@ -1,34 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Delete, Get, UseGuards, Req, Put } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { Appointment } from '@prisma/client';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/common/enums/role.enum';
 
-@Controller('appointment')
+@ApiTags('Appointments')
+@ApiBearerAuth()
+@Controller('appointments')
+@UseGuards(RolesGuard)
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
   @Post()
-  create(@Body() createAppointmentDto: CreateAppointmentDto) {
-    return this.appointmentService.create(createAppointmentDto);
+  @Roles(UserRole.USER)
+  create(@Req() req: any, @Body() createAppointmentDto: CreateAppointmentDto): Promise<Appointment> {
+    const userId = req.user.id;
+    return this.appointmentService.createAppointment(userId, createAppointmentDto);
   }
 
   @Get()
-  findAll() {
-    return this.appointmentService.findAll();
+  @Roles(UserRole.USER)
+  findAll(@Req() req: any): Promise<Appointment[]> {
+    const userId = req.user.id;
+    return this.appointmentService.findAllAppointmentsForUser(userId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.appointmentService.findOne(+id);
+  @Roles(UserRole.USER)
+  findOne(@Param('id') id: string): Promise<Appointment> {
+    return this.appointmentService.findAppointmentById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAppointmentDto: UpdateAppointmentDto) {
-    return this.appointmentService.update(+id, updateAppointmentDto);
+  @Put(':id')
+  @Roles(UserRole.USER)
+  update(@Param('id') id: string, @Body() updateAppointmentDto: UpdateAppointmentDto): Promise<Appointment> {
+    return this.appointmentService.updateAppointment(id, updateAppointmentDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.appointmentService.remove(+id);
+  @Roles(UserRole.USER)
+  delete(@Param('id') id: string): Promise<void> {
+    return this.appointmentService.deleteAppointment(id);
   }
 }

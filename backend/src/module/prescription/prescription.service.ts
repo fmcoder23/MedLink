@@ -1,26 +1,43 @@
-import { Injectable } from '@nestjs/common';
+// src/api/prescription/prescription.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
 
 @Injectable()
 export class PrescriptionService {
-  create(createPrescriptionDto: CreatePrescriptionDto) {
-    return 'This action adds a new prescription';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(createPrescriptionDto: CreatePrescriptionDto) {
+    return this.prisma.prescription.create({
+      data: createPrescriptionDto,
+    });
   }
 
-  findAll() {
-    return `This action returns all prescription`;
+  async findAll() {
+    return this.prisma.prescription.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} prescription`;
+  async findOne(id: string) {
+    const prescription = await this.prisma.prescription.findUnique({
+      where: { id },
+    });
+    if (!prescription) {
+      throw new NotFoundException(`Prescription with ID ${id} not found`);
+    }
+    return prescription;
   }
 
-  update(id: number, updatePrescriptionDto: UpdatePrescriptionDto) {
-    return `This action updates a #${id} prescription`;
+  async update(id: string, updatePrescriptionDto: UpdatePrescriptionDto) {
+    return this.prisma.prescription.update({
+      where: { id },
+      data: updatePrescriptionDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} prescription`;
+  async remove(id: string) {
+    return this.prisma.prescription.delete({
+      where: { id },
+    });
   }
 }

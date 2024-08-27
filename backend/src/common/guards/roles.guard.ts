@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '../enums/role.enum';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { config } from 'src/config';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -28,7 +29,9 @@ export class RolesGuard implements CanActivate {
     let user: JwtPayload;
 
     try {
-      user = this.jwtService.verify<JwtPayload>(token);
+      user = this.jwtService.verify<JwtPayload>(token, {
+        secret: config.jwt.secret
+      });
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired token');
     }
