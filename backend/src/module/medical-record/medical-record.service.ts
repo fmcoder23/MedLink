@@ -1,91 +1,90 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
-import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
-import { formatResponse } from 'src/common/utils/response.util';
-import { UserRole } from 'src/common/enums/role.enum';
+import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
+import { UserRole } from "@prisma/client";
+import { formatResponse } from "src/common/utils/response.util";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateMedicalRecordDto } from "./dto/create-medical-record.dto";
+import { UpdateMedicalRecordDto } from "./dto/update-medical-record.dto";
 
 @Injectable()
 export class MedicalRecordService {
-    constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-    async create(createMedicalRecordDto: CreateMedicalRecordDto) {
-        const { patientId, recordType, details, files } = createMedicalRecordDto;
+  async create(createMedicalRecordDto: CreateMedicalRecordDto) {
+    const { patientId, recordType, details, files } = createMedicalRecordDto;
 
-        const record = await this.prisma.medicalRecord.create({
-            data: {
-                patientId,
-                recordType,
-                details,
-                files
-            }
-        })
+    const record = await this.prisma.medicalRecord.create({
+      data: {
+        patient: {
+          connect: { id: patientId }, // connect the patient by ID
+        },
+        recordType,
+        details,
+        files,
+      },
+    });
 
-        return formatResponse('Medical record created successfully', record);
+    return formatResponse('Medical record created successfully', record);
+  }
+
+  async findAll() {
+    const records = await this.prisma.medicalRecord.findMany();
+    return formatResponse('All medical records retrieved successfully', records);
+  }
+
+  async findOne(id: string, user: any) {
+    const record = await this.prisma.medicalRecord.findUnique({
+      where: { id },
+    });
+
+    if (!record) {
+      throw new NotFoundException(`MedicalRecord with ID ${id} not found`);
     }
 
-    async findAll() {
-        const records = await this.prisma.medicalRecord.findMany();
-        return formatResponse('All medical records retrieved successfully', records);
+    if (
+      (user.role === UserRole.USER && record.patientId !== user.id) ||
+      (user.role === UserRole.DOCTOR && !(await this.isDoctorRelatedToRecord(user.id, record.id)))
+    ) {
+      throw new ForbiddenException('You do not have access to this medical record');
     }
 
-    async findOne(id: string, user: any) {
-        const record = await this.prisma.medicalRecord.findUnique({
-            where: { id },
-        });
+    return formatResponse('Medical record retrieved successfully', record);
+  }
 
-        if (!record) {
-            throw new NotFoundException(`MedicalRecord with ID ${id} not found`);
-        }
+  async update(id: string, updateMedicalRecordDto: UpdateMedicalRecordDto) {
+    const record = await this.prisma.medicalRecord.findUnique({ where: { id } });
 
-        // Ensure only authorized users can access the record
-        if (
-            (user.role === UserRole.USER && record.patientId !== user.id) ||
-            (user.role === UserRole.DOCTOR && !(await this.isDoctorRelatedToRecord(user.id, record.id)))
-        ) {
-            throw new ForbiddenException('You do not have access to this medical record');
-        }
-
-        return formatResponse('Medical record retrieved successfully', record);
+    if (!record) {
+      throw new NotFoundException(`MedicalRecord with ID ${id} not found`);
     }
 
-    async update(id: string, updateMedicalRecordDto: UpdateMedicalRecordDto) {
-        const record = await this.prisma.medicalRecord.findUnique({ where: { id } });
+    const updatedRecord = await this.prisma.medicalRecord.update({
+      where: { id },
+      data: updateMedicalRecordDto,
+    });
 
-        if (!record) {
-            throw new NotFoundException(`MedicalRecord with ID ${id} not found`);
-        }
+    return formatResponse('Medical record updated successfully', updatedRecord);
+  }
 
-        const updatedRecord = await this.prisma.medicalRecord.update({
-            where: { id },
-            data: updateMedicalRecordDto,
-        });
+  async remove(id: string) {
+    const record = await this.prisma.medicalRecord.findUnique({ where: { id } });
 
-        return formatResponse('Medical record updated successfully', updatedRecord);
+    if (!record) {
+      throw new NotFoundException(`MedicalRecord with ID ${id} not found`);
     }
 
-    async remove(id: string) {
-        const record = await this.prisma.medicalRecord.findUnique({ where: { id } });
+    await this.prisma.medicalRecord.delete({ where: { id } });
 
-        if (!record) {
-            throw new NotFoundException(`MedicalRecord with ID ${id} not found`);
-        }
+    return formatResponse('Medical record deleted successfully', null);
+  }
 
-        await this.prisma.medicalRecord.delete({ where: { id } });
+  private async isDoctorRelatedToRecord(doctorId: string, recordId: string): Promise<boolean> {
+    const record = await this.prisma.medicalRecord.findFirst({
+      where: {
+        id: recordId,
+        // Add conditions that define the relationship between doctor and record
+      },
+    });
 
-        return formatResponse('Medical record deleted successfully', null);
-    }
-
-    private async isDoctorRelatedToRecord(doctorId: string, recordId: string): Promise<boolean> {
-        // Implement logic to check if the doctor is related to the record
-        // For simplicity, assume the doctor can access the record if they created it
-        const record = await this.prisma.medicalRecord.findFirst({
-            where: {
-                id: recordId,
-                // Add conditions that define the relationship between doctor and record
-            },
-        });
-
-        return !!record;
-    }
+    return !!record;
+  }
 }
