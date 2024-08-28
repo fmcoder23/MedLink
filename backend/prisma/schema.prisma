@@ -20,6 +20,11 @@ enum AppointmentStatus {
   COMPLETED
 }
 
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
 enum RecordType {
   DIAGNOSIS
   PRESCRIPTION
@@ -37,7 +42,6 @@ model User {
   role  UserRole @default(USER)
   photo String?
 
-  isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -50,7 +54,6 @@ model User {
 
   @@id([id])
   @@index([role])
-  @@index([isActive])
 }
 
 model Doctor {
@@ -65,6 +68,8 @@ model Doctor {
   specialization String[]
   description    String?
   photo          String
+
+  durationPerPatient Int @default(60)
 
   location Json
   address  String
@@ -90,9 +95,8 @@ model Appointment {
   scheduledAt DateTime
   status      AppointmentStatus @default(PENDING)
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   patient User   @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -112,6 +116,9 @@ model MedicalRecord {
   recordType RecordType
   details    String
   files      String[]
+
+  price         Int
+  paymentStatus PaymentStatus
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

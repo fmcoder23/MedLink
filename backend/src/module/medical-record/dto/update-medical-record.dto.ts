@@ -1,11 +1,10 @@
-// src/api/medical-record/dto/update-medical-record.dto.ts
 import { PartialType } from '@nestjs/swagger';
 import { CreateMedicalRecordDto } from './create-medical-record.dto';
-import { IsOptional, IsUUID, IsString, IsEnum, IsArray } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsArray } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { RecordType } from '@prisma/client';
 
-export class UpdateMedicalRecordDto {
+export class UpdateMedicalRecordDto extends PartialType(CreateMedicalRecordDto) {
   @ApiPropertyOptional({ description: 'Type of medical record', enum: RecordType })
   @IsEnum(RecordType)
   @IsOptional()

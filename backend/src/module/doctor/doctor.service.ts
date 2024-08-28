@@ -24,11 +24,16 @@ export class DoctorService {
   }
 
   async create(createDoctorDto: CreateDoctorDto) {
-    const { password, phoneNumber, ...rest } = createDoctorDto;
+    const { password, phoneNumber, email, location, ...rest } = createDoctorDto;
 
-    const existingDoctor = await this.prisma.doctor.findUnique({ where: { phoneNumber } });
+    const existingDoctor = await this.prisma.doctor.findFirst({
+      where: {
+        OR: [{ phoneNumber }, { email }],
+      },
+    });
+
     if (existingDoctor) {
-      throw new ConflictException('Phone number already exists');
+      throw new ConflictException('Phone number or email already exists');
     }
 
     const hashedPassword = await hash(password, 12);
@@ -36,7 +41,9 @@ export class DoctorService {
       data: {
         ...rest,
         phoneNumber,
+        email,
         password: hashedPassword,
+        location: JSON.stringify(location), // Convert Location to JSON
       },
     });
 
@@ -76,7 +83,7 @@ export class DoctorService {
   }
 
   async updateMe(doctorId: string, updateDoctorDto: UpdateDoctorDto) {
-    const { password, ...rest } = updateDoctorDto;
+    const { password, location, ...rest } = updateDoctorDto;
     let hashedPassword: string;
     if (password) {
       hashedPassword = await hash(password, 12);
@@ -86,6 +93,7 @@ export class DoctorService {
       data: {
         password: hashedPassword,
         ...rest,
+        location: JSON.stringify(location), // Convert Location to JSON
       },
     });
     return formatResponse("Doctor's details updated successfully", doctor);
@@ -94,9 +102,14 @@ export class DoctorService {
   async update(id: string, updateDoctorDto: UpdateDoctorDto) {
     await this.findDoctorById(id);
 
+    const { location, ...rest } = updateDoctorDto;
+
     const updatedDoctor = await this.prisma.doctor.update({
       where: { id },
-      data: updateDoctorDto,
+      data: {
+        ...rest,
+        location: JSON.stringify(location), // Convert Location to JSON
+      },
     });
 
     return formatResponse('Doctor updated successfully', updatedDoctor);
@@ -107,7 +120,6 @@ export class DoctorService {
 
     await this.prisma.doctor.delete({ where: { id } });
 
-    return formatResponse('Doctor deleted successfully', []);
+    return formatResponse('Doctor deleted successfully', null);
   }
 }
-

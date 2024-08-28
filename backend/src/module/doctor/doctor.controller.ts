@@ -39,7 +39,7 @@ export class DoctorController {
     const doctorId = req.user.id;
     return this.doctorService.updateMe(doctorId, updateDoctorDto);
   }
-  
+
   @Get()
   findAll() {
     return this.doctorService.findAll();

@@ -1,25 +1,38 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Put, UseGuards, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  Put,
+  UseGuards,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/common/enums/role.enum';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @ApiTags('User')
 @ApiBearerAuth()
+@UseGuards(RolesGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get("getAll")
+  @Get()
   @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   findAll() {
     return this.userService.findAll();
   }
 
   @Get('me')
-  @Roles(UserRole.USER)
+  @Roles(UserRole.USER, UserRole.SUPERADMIN, UserRole.ADMIN)
   findCurrentUser(@Req() req: any) {
     const userId = req.user?.id;
     if (!userId) {
@@ -35,7 +48,7 @@ export class UserController {
   }
 
   @Put('me')
-  @Roles(UserRole.USER)
+  @Roles(UserRole.USER, UserRole.SUPERADMIN, UserRole.ADMIN)
   updateMe(@Req() req: any, @Body() updateUserDto: UpdateUserDto) {
     const userId = req.user?.id;
     if (!userId) {

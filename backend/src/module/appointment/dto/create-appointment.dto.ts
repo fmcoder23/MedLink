@@ -1,12 +1,8 @@
-import { IsUUID, IsDate, IsEnum, IsOptional } from 'class-validator';
+import { IsUUID, IsDate, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
-import { AppointmentStatus } from '@prisma/client';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateAppointmentDto {
-  @ApiProperty({ description: 'UUID of the patient', example: '123e4567-e89b-12d3-a456-426614174000' })
-  @IsUUID()
-  patientId: string;
 
   @ApiProperty({ description: 'UUID of the doctor', example: '123e4567-e89b-12d3-a456-426614174001' })
   @IsUUID()
@@ -16,9 +12,4 @@ export class CreateAppointmentDto {
   @IsDate()
   @Type(() => Date)
   scheduledAt: Date;
-
-  @ApiPropertyOptional({ description: 'Status of the appointment', enum: AppointmentStatus, example: AppointmentStatus.PENDING })
-  @IsEnum(AppointmentStatus)
-  @IsOptional()
-  status?: AppointmentStatus = AppointmentStatus.PENDING;
 }
