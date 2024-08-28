@@ -24,7 +24,7 @@ export class DoctorService {
   }
 
   async create(createDoctorDto: CreateDoctorDto) {
-    const { password, phoneNumber, email, location, ...rest } = createDoctorDto;
+    const { password, phoneNumber, email, location, region, ...rest } = createDoctorDto;
 
     const existingDoctor = await this.prisma.doctor.findFirst({
       where: {
@@ -44,6 +44,7 @@ export class DoctorService {
         email,
         password: hashedPassword,
         location: JSON.stringify(location), // Convert Location to JSON
+        region,
       },
     });
 
@@ -83,7 +84,7 @@ export class DoctorService {
   }
 
   async updateMe(doctorId: string, updateDoctorDto: UpdateDoctorDto) {
-    const { password, location, ...rest } = updateDoctorDto;
+    const { password, location, region, ...rest } = updateDoctorDto;
     let hashedPassword: string;
     if (password) {
       hashedPassword = await hash(password, 12);
@@ -94,6 +95,7 @@ export class DoctorService {
         password: hashedPassword,
         ...rest,
         location: JSON.stringify(location), // Convert Location to JSON
+        region,
       },
     });
     return formatResponse("Doctor's details updated successfully", doctor);
@@ -102,13 +104,14 @@ export class DoctorService {
   async update(id: string, updateDoctorDto: UpdateDoctorDto) {
     await this.findDoctorById(id);
 
-    const { location, ...rest } = updateDoctorDto;
+    const { location, region, ...rest } = updateDoctorDto;
 
     const updatedDoctor = await this.prisma.doctor.update({
       where: { id },
       data: {
         ...rest,
         location: JSON.stringify(location), // Convert Location to JSON
+        region,
       },
     });
 

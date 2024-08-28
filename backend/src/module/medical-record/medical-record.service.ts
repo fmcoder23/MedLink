@@ -10,16 +10,18 @@ export class MedicalRecordService {
     constructor(private readonly prisma: PrismaService) {}
 
     async create(createMedicalRecordDto: CreateMedicalRecordDto) {
-        const { patientId, recordType, details, files } = createMedicalRecordDto;
+        const { patientId, recordType, details, files, price, paymentStatus } = createMedicalRecordDto;
 
         const record = await this.prisma.medicalRecord.create({
             data: {
-                patientId,
+                patient: { connect: { id: patientId } },
                 recordType,
                 details,
-                files
-            }
-        })
+                files,
+                price,
+                paymentStatus,
+            },
+        });
 
         return formatResponse('Medical record created successfully', record);
     }
@@ -41,7 +43,7 @@ export class MedicalRecordService {
         // Ensure only authorized users can access the record
         if (
             (user.role === UserRole.USER && record.patientId !== user.id) ||
-            (user.role === UserRole.DOCTOR && !(await this.isDoctorRelatedToRecord(user.id, record.id)))
+            (user.role === UserRole.DOCTOR && !(await this.isDoctorRelatedToRecord(user.id, record.patientId)))
         ) {
             throw new ForbiddenException('You do not have access to this medical record');
         }
@@ -58,7 +60,9 @@ export class MedicalRecordService {
 
         const updatedRecord = await this.prisma.medicalRecord.update({
             where: { id },
-            data: updateMedicalRecordDto,
+            data: {
+                ...updateMedicalRecordDto,
+            },
         });
 
         return formatResponse('Medical record updated successfully', updatedRecord);
@@ -76,16 +80,15 @@ export class MedicalRecordService {
         return formatResponse('Medical record deleted successfully', null);
     }
 
-    private async isDoctorRelatedToRecord(doctorId: string, recordId: string): Promise<boolean> {
-        // Implement logic to check if the doctor is related to the record
-        // For simplicity, assume the doctor can access the record if they created it
-        const record = await this.prisma.medicalRecord.findFirst({
+    private async isDoctorRelatedToRecord(doctorId: string, patientId: string): Promise<boolean> {
+        // Implement logic to check if the doctor is related to the patient
+        const patient = await this.prisma.appointment.findFirst({
             where: {
-                id: recordId,
-                // Add conditions that define the relationship between doctor and record
+                doctorId,
+                patientId,
             },
         });
 
-        return !!record;
+        return !!patient;
     }
 }

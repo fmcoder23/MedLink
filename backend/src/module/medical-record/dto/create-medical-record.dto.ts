@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsString, IsUUID, IsEnum, IsArray } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID, IsEnum, IsArray, IsInt, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { RecordType } from '@prisma/client';
+import { RecordType, PaymentStatus } from '@prisma/client';
 
 export class CreateMedicalRecordDto {
   @ApiProperty({ description: 'UUID of the patient associated with the medical record' })
@@ -21,6 +21,16 @@ export class CreateMedicalRecordDto {
   @ApiProperty({ description: 'List of file paths associated with the medical record', type: [String] })
   @IsArray()
   @IsString({ each: true })
+  @IsOptional()
+  files?: string[];
+
+  @ApiProperty({ description: 'Price associated with the medical record' })
+  @IsInt()
   @IsNotEmpty()
-  files: string[];
+  price: number;
+
+  @ApiProperty({ description: 'Payment status of the medical record', enum: PaymentStatus })
+  @IsEnum(PaymentStatus)
+  @IsNotEmpty()
+  paymentStatus: PaymentStatus;
 }

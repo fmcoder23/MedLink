@@ -69,6 +69,12 @@ export class CreateDoctorDto {
   address: string;
 
   @IsNotEmpty()
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @ApiProperty({ example: "Tashkent" })
+  region: string;
+
+  @IsNotEmpty()
   @IsInt()
   @ApiProperty({ example: 60, description: "Duration per patient in minutes" })
   durationPerPatient: number;

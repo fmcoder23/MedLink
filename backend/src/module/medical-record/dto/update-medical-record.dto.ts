@@ -1,8 +1,8 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreateMedicalRecordDto } from './create-medical-record.dto';
-import { IsOptional, IsString, IsEnum, IsArray } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsArray, IsInt } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { RecordType } from '@prisma/client';
+import { RecordType, PaymentStatus } from '@prisma/client';
+import { CreateMedicalRecordDto } from './create-medical-record.dto';
 
 export class UpdateMedicalRecordDto extends PartialType(CreateMedicalRecordDto) {
   @ApiPropertyOptional({ description: 'Type of medical record', enum: RecordType })
@@ -19,4 +19,14 @@ export class UpdateMedicalRecordDto extends PartialType(CreateMedicalRecordDto) 
   @IsArray()
   @IsOptional()
   files?: string[];
+
+  @ApiPropertyOptional({ description: 'Price associated with the medical record' })
+  @IsInt()
+  @IsOptional()
+  price?: number;
+
+  @ApiPropertyOptional({ description: 'Payment status of the medical record', enum: PaymentStatus })
+  @IsEnum(PaymentStatus)
+  @IsOptional()
+  paymentStatus?: PaymentStatus;
 }

@@ -3,19 +3,23 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
+import { formatResponse } from 'src/common/utils/response.util';
 
 @Injectable()
 export class PrescriptionService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createPrescriptionDto: CreatePrescriptionDto) {
-    return this.prisma.prescription.create({
+    const prescription = await this.prisma.prescription.create({
       data: createPrescriptionDto,
     });
+
+    return formatResponse('Prescription created successfully', prescription);
   }
 
   async findAll() {
-    return this.prisma.prescription.findMany();
+    const prescriptions = await this.prisma.prescription.findMany();
+    return formatResponse('All prescriptions retrieved successfully', prescriptions);
   }
 
   async findOne(id: string) {
@@ -25,19 +29,26 @@ export class PrescriptionService {
     if (!prescription) {
       throw new NotFoundException(`Prescription with ID ${id} not found`);
     }
-    return prescription;
+
+    return formatResponse('Prescription retrieved successfully', prescription);
   }
 
   async update(id: string, updatePrescriptionDto: UpdatePrescriptionDto) {
-    return this.prisma.prescription.update({
+    const prescription = await this.prisma.prescription.update({
       where: { id },
       data: updatePrescriptionDto,
     });
+
+    return formatResponse('Prescription updated successfully', prescription);
   }
 
   async remove(id: string) {
-    return this.prisma.prescription.delete({
+    await this.findOne(id); // Ensure the prescription exists before deletion
+
+    await this.prisma.prescription.delete({
       where: { id },
     });
+
+    return formatResponse('Prescription deleted successfully', null);
   }
 }
