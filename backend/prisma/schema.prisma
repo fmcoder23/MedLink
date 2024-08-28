@@ -69,6 +69,8 @@ model Doctor {
   description    String?
   photo          String
 
+  durationPerPatient Int @default(60)
+
   location Json
   address  String
 
@@ -93,9 +95,8 @@ model Appointment {
   scheduledAt DateTime
   status      AppointmentStatus @default(PENDING)
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   patient User   @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -116,7 +117,7 @@ model MedicalRecord {
   details    String
   files      String[]
 
-  price Int
+  price         Int
   paymentStatus PaymentStatus
 
   createdAt DateTime  @default(now())

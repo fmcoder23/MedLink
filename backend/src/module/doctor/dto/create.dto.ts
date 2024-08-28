@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsEmail, IsNotEmpty, IsObject, IsOptional, IsPhoneNumber, IsString, MinLength, ValidateNested } from "class-validator";
+import { IsNotEmpty, IsString, MinLength, IsPhoneNumber, IsEmail, IsOptional, IsArray, ValidateNested, IsInt } from "class-validator";
 
 class Location {
   @IsNotEmpty()
@@ -60,11 +60,16 @@ export class CreateDoctorDto {
   @ValidateNested()
   @Type(() => Location)
   @ApiProperty({ example: { latitude: 41.3074, longitude: 69.2442 } })
-  location: object;
+  location: Location;
 
   @IsNotEmpty()
   @IsString()
   @Transform(({ value }) => value.trim())
   @ApiProperty({ example: "Shayhontohur, Tashkent, Uzbekistan" })
   address: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  @ApiProperty({ example: 60, description: "Duration per patient in minutes" })
+  durationPerPatient: number;
 }

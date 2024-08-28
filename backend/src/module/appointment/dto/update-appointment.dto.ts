@@ -4,10 +4,6 @@ import { AppointmentStatus } from '@prisma/client';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateAppointmentDto {
-  @ApiPropertyOptional({ description: 'UUID of the patient', example: '123e4567-e89b-12d3-a456-426614174000' })
-  @IsUUID()
-  @IsOptional()
-  patientId?: string;
 
   @ApiPropertyOptional({ description: 'UUID of the doctor', example: '123e4567-e89b-12d3-a456-426614174001' })
   @IsUUID()
@@ -20,7 +16,7 @@ export class UpdateAppointmentDto {
   @Type(() => Date)
   scheduledAt?: Date;
 
-  @ApiPropertyOptional({ description: 'Updated status of the appointment', enum: AppointmentStatus, example: AppointmentStatus.CONFIRMED })
+  @ApiPropertyOptional({ description: 'Status of the appointment', enum: AppointmentStatus, example: AppointmentStatus.CONFIRMED })
   @IsEnum(AppointmentStatus)
   @IsOptional()
   status?: AppointmentStatus;
