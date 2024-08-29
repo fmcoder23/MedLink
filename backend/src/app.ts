@@ -7,6 +7,7 @@ import { AppointmentModule } from './module/appointment/appointment.module';
 import { PrescriptionModule } from './module/prescription/prescription.module';
 import { ReviewModule } from './module/review/review.module';
 import { SymptomCheckerModule } from './module/symptom-checker/symptom-checker.module';
+import { AuthModule } from '@module';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { SymptomCheckerModule } from './module/symptom-checker/symptom-checker.m
     UserModule,
     AppointmentModule,
     PrescriptionModule,
-    MedicalRecordModule,
+    // MedicalRecordModule,
     ReviewModule,
     SymptomCheckerModule
   ],

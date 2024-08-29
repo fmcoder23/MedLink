@@ -1,26 +1,15 @@
-// src/api/symptom-checker/dto/create-symptom-checker.dto.ts
-import { IsNotEmpty, IsUUID, IsArray, IsOptional, IsString } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsUUID, IsArray, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSymptomCheckerDto {
-  @ApiProperty({ description: 'UUID of the user checking symptoms' })
+  @ApiProperty({ description: 'UUID of the user associated with the symptom checker', example: 'e1234567-e89b-12d3-a456-426614174000' })
   @IsUUID()
   @IsNotEmpty()
   userId: string;
 
-  @ApiPropertyOptional({ description: 'UUID of the recommended doctor' })
-  @IsUUID()
-  @IsOptional()
-  recommendedDoctorId?: string;
-
-  @ApiProperty({ description: 'List of symptoms provided by the user', type: [String] })
+  @ApiProperty({ description: 'Array of symptoms reported by the user', example: ['headache', 'fever', 'nausea'] })
   @IsArray()
   @IsString({ each: true })
   @IsNotEmpty()
   symptoms: string[];
-
-  @ApiPropertyOptional({ description: 'Diagnosis suggested by the AI' })
-  @IsString()
-  @IsOptional()
-  diagnosis?: string;
 }

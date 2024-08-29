@@ -1,7 +1,7 @@
 export * from './appointment'
 export * from './auth'
 export * from './doctor'
-export * from './medical-record'
+// export * from './medical-record'
 export * from './prescription'
 export * from './review'
 export * from './symptom-checker'

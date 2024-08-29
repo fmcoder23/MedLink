@@ -1,7 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsOptional, IsString, IsEnum, IsArray, IsInt } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { RecordType, PaymentStatus } from '@prisma/client';
+import { IsInt, IsNotEmpty, IsUUID } from 'class-validator';
+import { PaymentStatus } from '@prisma/client';
 import { CreateMedicalRecordDto } from './create-medical-record.dto';
 import { IsOptional, IsString, IsEnum, IsArray } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
