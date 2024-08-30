@@ -14,7 +14,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 @UseGuards(RolesGuard)
 export class SymptomCheckerController {
   constructor(private readonly symptomCheckerService: SymptomCheckerService) {}
-  
+
   @Post()
   @Roles(UserRole.USER)
   create(@Body() createSymptomCheckerDto: CreateSymptomCheckerDto) {

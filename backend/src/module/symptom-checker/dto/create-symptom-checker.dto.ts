@@ -1,3 +1,4 @@
+// src/api/symptom-checker/dto/create-symptom-checker.dto.ts
 import { IsNotEmpty, IsUUID, IsArray, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 

@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDoctorDto } from './dto/create.dto';
 import { DoctorLoginDto } from './dto/login.dto';
@@ -12,14 +12,23 @@ import { UserRole } from 'src/common/enums/role.enum';
 export class DoctorService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwt: JwtService
-  ) { }
+    private readonly jwtService: JwtService,
+  ) {}
 
   private async findDoctorById(id: string) {
-    const doctor = await this.prisma.doctor.findUnique({ where: { id } });
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { id },
+      include: {
+        prescriptions: true,
+        appointments: true,
+        reviews: true,
+      },
+    });
+
     if (!doctor) {
       throw new NotFoundException('Doctor not found');
     }
+
     return doctor;
   }
 
@@ -43,44 +52,72 @@ export class DoctorService {
         phoneNumber,
         email,
         password: hashedPassword,
-        location: JSON.stringify(location), // Convert Location to JSON
+        location: JSON.stringify(location),
         region,
       },
     });
 
-    return formatResponse("Doctor created successfully", doctor);
+    return formatResponse('Doctor created successfully', doctor);
   }
 
   async login(doctorLoginDto: DoctorLoginDto) {
     const { phoneNumber, password } = doctorLoginDto;
-    const doctor = await this.prisma.doctor.findUnique({ where: { phoneNumber } });
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { phoneNumber },
+    });
 
     if (!doctor || !(await compare(password, doctor.password))) {
       throw new UnauthorizedException('Incorrect phone or password');
     }
 
-    const token = this.jwt.sign({ id: doctor.id, role: UserRole.DOCTOR });
-    return {
-      status: 200,
-      message: 'Doctor successfully logged in',
+    const token = this.jwtService.sign({ id: doctor.id, role: UserRole.DOCTOR });
+    return formatResponse('Doctor successfully logged in', {
       token,
-      data: doctor,
-    };
+      doctor,
+    });
   }
 
   async findCurrentDoctor(doctorId: string) {
     const doctor = await this.findDoctorById(doctorId);
-    return formatResponse("Current doctor details retrieved successfully", doctor);
+    return formatResponse('Current doctor details retrieved successfully', doctor);
   }
 
   async findOne(id: string) {
     const doctor = await this.findDoctorById(id);
-    return formatResponse("Doctor retrieved successfully", doctor);
+    return formatResponse('Doctor retrieved successfully', doctor);
   }
 
   async findAll() {
-    const doctors = await this.prisma.doctor.findMany();
-    return formatResponse("All doctors retrieved successfully", doctors);
+    const [doctors, totalCount] = await this.prisma.$transaction([
+      this.prisma.doctor.findMany({
+        include: {
+          prescriptions: true,
+          appointments: true,
+          reviews: true,
+        },
+      }),
+      this.prisma.doctor.count(),
+    ]);
+
+    return formatResponse('All doctors retrieved successfully', { doctors, totalCount });
+  }
+
+  async findByRegion(region: string) {
+    const [doctors, totalCount] = await this.prisma.$transaction([
+      this.prisma.doctor.findMany({
+        where: { region },
+        include: {
+          prescriptions: true,
+          appointments: true,
+          reviews: true,
+        },
+      }),
+      this.prisma.doctor.count({
+        where: { region },
+      }),
+    ]);
+
+    return formatResponse(`Doctors in region "${region}" retrieved successfully`, { doctors, totalCount });
   }
 
   async updateMe(doctorId: string, updateDoctorDto: UpdateDoctorDto) {
@@ -94,8 +131,13 @@ export class DoctorService {
       data: {
         password: hashedPassword,
         ...rest,
-        location: JSON.stringify(location), // Convert Location to JSON
+        location: JSON.stringify(location),
         region,
+      },
+      include: {
+        prescriptions: true,
+        appointments: true,
+        reviews: true,
       },
     });
     return formatResponse("Doctor's details updated successfully", doctor);
@@ -110,8 +152,13 @@ export class DoctorService {
       where: { id },
       data: {
         ...rest,
-        location: JSON.stringify(location), // Convert Location to JSON
+        location: JSON.stringify(location),
         region,
+      },
+      include: {
+        prescriptions: true,
+        appointments: true,
+        reviews: true,
       },
     });
 
@@ -125,4 +172,56 @@ export class DoctorService {
 
     return formatResponse('Doctor deleted successfully', null);
   }
+
+
+
+async findTopRatedDoctors(limit: number) {
+  const doctors = await this.prisma.doctor.findMany({
+    include: {
+      reviews: true,
+    },
+  });
+
+  const doctorsWithAverageRating = doctors.map(doctor => {
+    const avgRating = doctor.reviews.reduce((sum, review) => sum + review.rating, 0) / doctor.reviews.length || 0;
+    return {
+      ...doctor,
+      avgRating,
+    };
+  });
+
+  const sortedDoctors = doctorsWithAverageRating.sort((a, b) => b.avgRating - a.avgRating).slice(0, limit);
+
+  return formatResponse("Top doctors retrieved successfully", sortedDoctors);
 }
+
+
+async findTopSpecialties(limit: number) {
+  const specialties = await this.prisma.$queryRaw<
+    Array<{ specialization: string; searchCount: number }>
+  >`
+    SELECT specialization, SUM("searchCount") as "searchCount"
+    FROM "Doctor"
+    GROUP BY specialization
+    ORDER BY "searchCount" DESC
+    LIMIT ${limit};
+  `;
+
+  return formatResponse("Top specialties retrieved successfully", specialties);
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+

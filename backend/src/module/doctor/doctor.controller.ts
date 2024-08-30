@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Req, Query } from '@nestjs/common';
 import { DoctorService } from './doctor.service';
 import { CreateDoctorDto } from './dto/create.dto';
 import { DoctorLoginDto } from './dto/login.dto';
@@ -43,6 +43,23 @@ export class DoctorController {
   @Get()
   findAll() {
     return this.doctorService.findAll();
+  }
+
+  @Get('region')
+  findByRegion(@Query('region') region: string) {
+    return this.doctorService.findByRegion(region);
+  }
+
+  @Get('top-rated')
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
+  findTopRatedDoctors(@Query('limit') limit: number = 10) {
+    return this.doctorService.findTopRatedDoctors(limit);
+  }
+
+  @Get('top-specialties')
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
+  findTopSpecialties(@Query('limit') limit: number = 5) {
+    return this.doctorService.findTopSpecialties(limit);
   }
 
   @Get(':id')

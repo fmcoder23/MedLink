@@ -1,3 +1,4 @@
+// src/api/symptom-checker/dto/update-symptom-checker.dto.ts
 import { PartialType } from '@nestjs/swagger';
 import { CreateSymptomCheckerDto } from './create-symptom-checker.dto';
 import { IsUUID, IsOptional } from 'class-validator';

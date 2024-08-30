@@ -65,7 +65,7 @@ model Doctor {
 
   email String @unique
 
-  specialization String[]
+  specialization String[] @default([]) // Assuming it's an array of specialties
   description    String?
   photo          String
 
@@ -74,6 +74,8 @@ model Doctor {
   location Json
   address  String
   region String
+
+  searchCount Int @default(0) // Add this field to track search count
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -86,6 +88,7 @@ model Doctor {
 
   @@id([id])
 }
+
 
 model Appointment {
   id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
