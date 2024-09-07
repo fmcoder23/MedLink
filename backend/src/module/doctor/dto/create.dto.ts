@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsNotEmpty, IsString, MinLength, IsPhoneNumber, IsEmail, IsOptional, IsArray, ValidateNested, IsInt } from "class-validator";
+import { IsNotEmpty, IsString, MinLength, IsPhoneNumber, IsEmail, IsOptional, IsArray, ValidateNested, IsInt, IsUUID } from "class-validator";
+import { UUID } from "crypto";
+import { IsUUIDOrStringArray } from "src/common/decorators/valid.decorator";
 
 class Location {
   @IsNotEmpty()
@@ -46,11 +48,6 @@ export class CreateDoctorDto {
   description?: string;
 
   @IsNotEmpty()
-  @IsArray()
-  @ApiProperty({ example: ["Dentist", "Surgeon"] })
-  specialization: string[];
-
-  @IsNotEmpty()
   @IsString()
   @Transform(({ value }) => value.trim())
   @ApiProperty({ example: "doctor_photo.jpg" })
@@ -69,13 +66,13 @@ export class CreateDoctorDto {
   address: string;
 
   @IsNotEmpty()
-  @IsString()
-  @Transform(({ value }) => value.trim())
-  @ApiProperty({ example: "Tashkent" })
-  region: string;
+  @IsUUID()
+  @ApiProperty({ example: "some-city-uuid" })
+  cityId: string; // Reference to the city
 
-  @IsNotEmpty()
-  @IsInt()
-  @ApiProperty({ example: 60, description: "Duration per patient in minutes" })
-  durationPerPatient: number;
+  @IsArray()
+  @IsUUIDOrStringArray({ message: 'Each value must be a valid UUID or a string representing a specialization name.' })
+  @ApiProperty({ example: ['specialization-uuid1', 'specialization-name1'] })
+  specializationIds: (string | UUID)[];
+
 }

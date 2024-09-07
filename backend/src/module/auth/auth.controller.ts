@@ -20,4 +20,10 @@ export class AuthController {
   login(@Body() body: LoginDto) {
     return this.authService.login(body);
   }
+
+  @Post("admin-login")
+  @ApiOperation({ summary: 'Admin Log in'})
+  adminLogin(@Body() body: LoginDto) {
+    return this.authService.adminLogin(body);
+  }
 }

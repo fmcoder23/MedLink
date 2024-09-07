@@ -1,0 +1,14 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+
+export class CreateSpecializationDto {
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty({ example: 'Cardiology' })
+  name: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  @ApiProperty({ example: 'city-uuid' })
+  cityId: string;
+}

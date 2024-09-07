@@ -8,6 +8,8 @@ import { PrescriptionModule } from './module/prescription/prescription.module';
 import { ReviewModule } from './module/review/review.module';
 import { SymptomCheckerModule } from './module/symptom-checker/symptom-checker.module';
 import { AuthModule } from '@module';
+import { SpecializationModule } from './module/specialization/specialization.module';
+import { CityModule } from './module/city/city.module';
 
 @Module({
   imports: [
@@ -18,7 +20,9 @@ import { AuthModule } from '@module';
     PrescriptionModule,
     // MedicalRecordModule,
     ReviewModule,
-    SymptomCheckerModule
+    SymptomCheckerModule,
+    SpecializationModule,
+    CityModule
   ],
   controllers: [],
   providers: [{

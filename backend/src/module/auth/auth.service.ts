@@ -69,4 +69,29 @@ export class AuthService {
       data: user,
     };
   }
+
+  async adminLogin(loginDto: LoginDto) {
+    const { phoneNumber, password } = loginDto;
+
+    // Find the user by phone number
+    const user = await this.prisma.user.findUnique({ where: { phoneNumber } });
+    if (!user) {
+      throw new UnauthorizedException('Invalid phone number or password');
+    }
+
+    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+      throw new UnauthorizedException('User is not an admin');
+    }
+
+    // Compare the provided password with the stored hash
+    const isPasswordValid = await compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid phone number or password');
+    }
+
+    // Generate a JWT token for the user
+    const token = this.jwt.sign({ id: user.id, role: user.role });
+
+    return { user, token };
+  }
 }

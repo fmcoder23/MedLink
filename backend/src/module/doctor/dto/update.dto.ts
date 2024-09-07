@@ -6,5 +6,6 @@ export class UpdateDoctorDto extends CreateDoctorDto {
     @IsOptional()
     @ApiPropertyOptional({ example: "12345", required: false })
     password: string;
+    
   }
   

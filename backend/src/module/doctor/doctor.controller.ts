@@ -6,7 +6,7 @@ import { UpdateDoctorDto } from './dto/update.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { UserRole } from 'src/common/enums/role.enum';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Doctor')
 @Controller('doctor')
@@ -41,29 +41,34 @@ export class DoctorController {
   }
 
   @Get()
-  findAll() {
-    return this.doctorService.findAll();
+  @ApiQuery({ name: 'regionId', required: false, type: String })
+  @ApiQuery({ name: 'specialization', required: false, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'sortBy', required: false, type: String, enum: ['top-rated'] })
+  findAll(
+    @Query('regionId') regionId?: string,
+    @Query('specialization') specialization?: string,
+    @Query('limit') limit?: number,
+    @Query('page') page?: number,
+    @Query('sortBy') sortBy?: string,
+  ) {
+    return this.doctorService.findAll({ regionId, specialization,limit,page, sortBy });
   }
 
-  @Get('region')
-  findByRegion(@Query('region') region: string) {
-    return this.doctorService.findByRegion(region);
+  @Get('by-city')
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.USER)
+   findDoctorsByCityAndCategory(
+    @Query('city') city: string,
+    @Query('category') category: string,
+  ) {
+    return this.doctorService.findDoctorsByCityAndCategory(city, category);
   }
 
-  @Get('top-rated')
-  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
-  findTopRatedDoctors(@Query('limit') limit: number = 10) {
-    return this.doctorService.findTopRatedDoctors(limit);
-  }
-
-  @Get('top-specialties')
-  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
-  findTopSpecialties(@Query('limit') limit: number = 5) {
-    return this.doctorService.findTopSpecialties(limit);
-  }
+  
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.USER)
   findOne(@Param('id') id: string) {
     return this.doctorService.findOne(id);
   }
@@ -73,6 +78,8 @@ export class DoctorController {
   update(@Param('id') id: string, @Body() updateDoctorDto: UpdateDoctorDto) {
     return this.doctorService.update(id, updateDoctorDto);
   }
+
+  
 
   @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
