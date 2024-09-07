@@ -1,5 +1,5 @@
 // src/api/prescription/prescription.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Put } from '@nestjs/common';
 import { PrescriptionService } from './prescription.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
@@ -33,7 +33,7 @@ export class PrescriptionController {
     return this.prescriptionService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @Roles(UserRole.DOCTOR)
   update(@Param('id') id: string, @Body() updatePrescriptionDto: UpdatePrescriptionDto) {
     return this.prescriptionService.update(id, updatePrescriptionDto);

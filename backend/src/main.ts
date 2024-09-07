@@ -3,7 +3,7 @@ import { AppModule } from './app';
 import * as basicAuth from 'express-basic-auth';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
-import { config } from './config';
+import { config } from 'src/config/config';
 
 
 async function bootstrap() {

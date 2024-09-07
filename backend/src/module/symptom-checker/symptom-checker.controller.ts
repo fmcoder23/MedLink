@@ -1,5 +1,5 @@
 // src/api/symptom-checker/symptom-checker.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Put } from '@nestjs/common';
 import { SymptomCheckerService } from './symptom-checker.service';
 import { CreateSymptomCheckerDto } from './dto/create-symptom-checker.dto';
 import { UpdateSymptomCheckerDto } from './dto/update-symptom-checker.dto';
@@ -33,7 +33,7 @@ export class SymptomCheckerController {
     return this.symptomCheckerService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @Roles(UserRole.USER)
   update(@Param('id') id: string, @Body() updateSymptomCheckerDto: UpdateSymptomCheckerDto) {
     return this.symptomCheckerService.update(id, updateSymptomCheckerDto);

@@ -4,7 +4,7 @@ import { DoctorController } from './doctor.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { config } from 'src/config';
+import { config } from '@config';
 
 @Module({
   imports: [

@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '../enums/role.enum';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
-import { config } from 'src/config';
+import { config } from '@config';
 
 @Injectable()
 export class RolesGuard implements CanActivate {

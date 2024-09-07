@@ -110,6 +110,7 @@ model Doctor {
   appointments   Appointment[]
   reviews        Review[]
   symptomChecker SymptomChecker[]
+  medicalRecords MedicalRecord[]
 
   @@id([id])
   @@index([cityId]) // Index to speed up queries by city
@@ -141,6 +142,7 @@ model MedicalRecord {
   id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   patientId String @db.Uuid
+  doctorId  String @db.Uuid
 
   recordType RecordType
   details    String
@@ -154,6 +156,7 @@ model MedicalRecord {
   deletedAt DateTime?
 
   patient User @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([id])
   @@index([patientId])

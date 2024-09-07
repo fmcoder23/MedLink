@@ -18,7 +18,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@module": ["./src/module"]
+      "@module": ["./src/module"],
+      "@config": ["./src/config"]
     }
   }
 }

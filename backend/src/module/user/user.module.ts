@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { config } from 'src/config';
+import { config } from '@config';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 
