@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
+enum RecordType {
+  DIAGNOSIS
+  PRESCRIPTION
+  LAB_REPORT
+  OTHER
+}
+
+model User {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  fullname    String
+  phoneNumber String @unique
+  password    String
+
+  role  UserRole @default(USER)
+  photo String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  prescriptions  Prescription[]
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  reviews        Review[]
+  symptomChecker SymptomChecker[]
+
+  @@id([id])
+  @@index([role])
+}
+
+model City {
+  id   String  @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String  @unique
+  doctors Doctor[]
+
+  @@id([id])
+}
+
+model Specialization {
+  id   String  @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String
+
+  doctors Doctor[]  // Implicit many-to-many relation with Doctor
+
+  @@id([id])
+}
+
+model Doctor {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  fullname    String
+  phoneNumber String @unique
+  password    String
+
+  email String @unique
+
+  description    String?
+  photo          String
+
+  durationPerPatient Int @default(60)
+
+  location Json
+  address  String
+  cityId   String @db.Uuid // Foreign key to link to City model
+
+  searchCount Int @default(0) // Add this field to track search count
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  city City @relation(fields: [cityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  specializations Specialization[]  // Implicit many-to-many relation with Specialization
+
+  prescriptions  Prescription[]
+  appointments   Appointment[]
+  reviews        Review[]
+  symptomChecker SymptomChecker[]
+  medicalRecords MedicalRecord[]
+
+  @@id([id])
+  @@index([cityId]) // Index to speed up queries by city
+}
+
+model Appointment {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  patientId String @db.Uuid
+  doctorId  String @db.Uuid
+
+  scheduledAt DateTime
+  status      AppointmentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient User   @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model MedicalRecord {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  patientId String @db.Uuid
+  doctorId  String @db.Uuid
+
+  recordType RecordType
+  details    String
+  files      String[]
+
+  price         Int
+  paymentStatus PaymentStatus
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  patient User @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([patientId])
+  @@index([recordType])
+}
+
+model Prescription {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  doctorId  String @db.Uuid
+  patientId String @db.Uuid
+
+  medication   String
+  dosage       String
+  instructions String
+
+  expirationDate DateTime?
+  fulfilled      Boolean   @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  patient User   @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([fulfilled])
+  @@index([expirationDate])
+}
+
+model Review {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  doctorId  String @db.Uuid
+  patientId String @db.Uuid
+
+  isAnonymous Boolean @default(false)
+  rating      Int
+  comment     String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  patient User   @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([rating])
+}
+
+model SymptomChecker {
+  id String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  userId              String  @db.Uuid
+  recommendedDoctorId String? @db.Uuid
+
+  symptoms  String[]
+  diagnosis String?
+
+  createdAt DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  doctor Doctor? @relation(fields: [recommendedDoctorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id])
+  @@index([userId])
+  @@index([recommendedDoctorId])
+}
