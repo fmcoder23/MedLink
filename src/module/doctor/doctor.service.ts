@@ -19,9 +19,13 @@ export class DoctorService {
     const doctor = await this.prisma.doctor.findUnique({
       where: { id },
       include: {
-        prescriptions: true,
         appointments: true,
+        medicalRecords: true,
+        city: true,
+        prescriptions: true,
+        specializations: true,
         reviews: true,
+        symptomChecker: true,
       },
     });
   
@@ -287,39 +291,6 @@ export class DoctorService {
   
     return formatResponse(`Doctors in ${cityName} for category ${categoryName} retrieved successfully`, specialization.doctors);
   }
-  
-  
-  // async getAllCitiesWithSpecializations() {
-  //   const cities = await this.prisma.city.findMany({
-  //     include: {
-  //       doctors: {
-  //         select: {
-  //           specialization: true,
-  //         },
-  //       },
-  //     },
-  //   });
-
-  //   // Format the data to group specializations by city
-  //   const result = cities.map(city => {
-  //     const specializations = city.doctors.reduce((acc, doctor) => {
-  //       doctor.specialization.forEach(spec => {
-  //         if (!acc.includes(spec)) {
-  //           acc.push(spec);
-  //         }
-  //       });
-  //       return acc;
-  //     }, []);
-
-  //     return {
-  //       id: city.id,
-  //       name: city.name,
-  //       specializations,
-  //     };
-  //   });
-
-  //   return formatResponse('Cities with doctor specializations retrieved successfully', result);
-  // }
 
   async updateMe(doctorId: string, updateDoctorDto: UpdateDoctorDto) {
     const { password, location, ...rest } = updateDoctorDto;

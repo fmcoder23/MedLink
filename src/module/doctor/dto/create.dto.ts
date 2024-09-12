@@ -72,7 +72,7 @@ export class CreateDoctorDto {
 
   @IsArray()
   @IsUUIDOrStringArray({ message: 'Each value must be a valid UUID or a string representing a specialization name.' })
-  @ApiProperty({ example: ['specialization-uuid1', 'specialization-name1'] })
+  @ApiProperty({ example: ['specialization-uuid1'] })
   specializationIds: (string | UUID)[];
 
 }
