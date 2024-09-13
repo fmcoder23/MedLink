@@ -19,5 +19,8 @@ export const config = {
         accessKey: process.env.R2_ACCESS_KEY,
         secretKey: process.env.R2_SECRET_KEY,
         publicUrl: process.env.R2_PUBLIC_URL,
+    },
+    openai: {
+        apiKey: process.env.OPENAI_API_KEY,
     }
 }

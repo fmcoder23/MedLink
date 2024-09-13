@@ -188,75 +188,98 @@ export class DoctorService {
     // Build the filter conditions
     const whereConditions: any = {};
     if (regionId) {
-      whereConditions.cityId = regionId; // Assuming regionId is the cityId
+        whereConditions.cityId = regionId; // Assuming regionId is the cityId
     }
     if (specialization) {
-      whereConditions.specializations = {
-        some: {
-          name: specialization, // Prisma uses 'some' for filtering many-to-many relations
-        },
-      };
+        whereConditions.specializations = {
+            some: {
+                name: specialization, // Prisma uses 'some' for filtering many-to-many relations
+            },
+        };
     }
   
-    // Fetch doctors with their specializations, excluding reviews for now
+    // Fetch doctors with their specializations, appointments, prescriptions, and reviews
     let doctors = await this.prisma.doctor.findMany({
-      where: whereConditions,
-      include: {
-        specializations: {
-          select: {
-            name: true,
-          },
+        where: whereConditions,
+        include: {
+            city: true,
+            specializations: {
+                select: {
+                    name: true,
+                },
+            },
+            appointments: {
+                include: {
+                    patient: true, // Include patient details within appointments
+                },
+            },
+            prescriptions: true,
+            reviews: true,
+            medicalRecords: true,
         },
-      },
-      skip: skip,
-      take: Number(limit),
+        skip: skip,
+        take: Number(limit),
     });
   
     // Count total number of doctors matching the filter conditions
     let totalCount = await this.prisma.doctor.count({
-      where: whereConditions,
+        where: whereConditions,
     });
   
     // Calculate average rating and total review count for each doctor
     const doctorsWithAverageRating = await Promise.all(
-      doctors.map(async (doctor) => {
-        const reviewStats = await this.prisma.review.aggregate({
-          _avg: {
-            rating: true,
-          },
-          _count: {
-            rating: true, // Count the total number of reviews
-          },
-          where: {
-            doctorId: doctor.id,
-          },
-        });
-        return {
-          ...doctor,
-          avgRating: reviewStats._avg.rating || 0,
-          totalReviews: reviewStats._count.rating || 0, // Total count of reviews
-        };
-      })
+        doctors.map(async (doctor) => {
+            const reviewStats = await this.prisma.review.aggregate({
+                _avg: {
+                    rating: true,
+                },
+                _count: {
+                    rating: true, // Count the total number of reviews
+                },
+                where: {
+                    doctorId: doctor.id,
+                },
+            });
+            return {
+                ...doctor,
+                avgRating: reviewStats._avg.rating || 0,
+                totalReviews: reviewStats._count.rating || 0, // Total count of reviews
+            };
+        })
     );
   
     if (sortBy === 'top-rated') {
-      // Sort doctors by average rating in descending order
-      doctorsWithAverageRating.sort((a, b) => b.avgRating - a.avgRating);
+        // Sort doctors by average rating in descending order
+        doctorsWithAverageRating.sort((a, b) => b.avgRating - a.avgRating);
     }
   
     return formatResponse('Doctors retrieved successfully', {
-      doctors: doctorsWithAverageRating.map(doctor => ({
-        id: doctor.id,
-        fullname: doctor.fullname,
-        specializations: doctor.specializations.map(spec => spec.name),
-        avgRating: doctor.avgRating,
-        totalReviews: doctor.totalReviews,
-      })),
-      totalCount,
-      totalPages: Math.ceil(totalCount / limit),
-      currentPage: page,
+        doctors: doctorsWithAverageRating.map(doctor => ({
+            id: doctor.id,
+            fullname: doctor.fullname,
+            phoneNumber: doctor.phoneNumber,
+            email: doctor.email,
+            description: doctor.description,
+            photo: doctor.photo,
+            address: doctor.address,
+            durationPerPatient: doctor.durationPerPatient,
+            location: JSON.stringify(doctor.location),
+            specializations: doctor.specializations.map(spec => spec.name),
+            appointments: doctor.appointments,
+            prescriptions: doctor.prescriptions,
+            reviews: doctor.reviews,
+            medicalRecords: doctor.medicalRecords,
+            avgRating: doctor.avgRating,
+            totalReviews: doctor.totalReviews,
+            createdAt: doctor.createdAt,
+            updatedAt: doctor.updatedAt,
+        })),
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        currentPage: page,
     });
 }
+
 
   
   async findDoctorsByCityAndCategory(cityName: string, categoryName: string) {
